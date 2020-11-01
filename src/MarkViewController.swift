@@ -56,31 +56,26 @@ class PlayerInfo {
     let frameTimes: [CMTime]
 
     func frameNumber(for time: CMTime) -> (Int, CMTime) {
-        var previousFrameNumber = 0
-        var previousFrameTime = CMTime.zero
-        for (frameNumber, frameTime) in frameTimes.enumerated() {
-            if time < frameTime {
-                break
-            }
-            previousFrameNumber = frameNumber
-            previousFrameTime = frameTime
-        }
-        return (previousFrameNumber, previousFrameTime)
-        // TODO: binary search
-        /*
-        var lower = 0
-        var upper = frameTimes.count
-
-        while lower < upper {
-            let midpoint = lower + (upper - lower) / 2
-            if time < frameTimes[midpoint] {
-                upper = midpoint
+        // The following algorithm corresponds to a rightmost binary search:
+        //   https://en.wikipedia.org/wiki/Binary_search_algorithm#Procedure_for_finding_the_rightmost_element
+        var l = 0
+        var r = frameTimes.count
+        while l < r {
+            let m = (l + r) / 2
+            if frameTimes[m] > time {
+                r = m
             } else {
-                lower = midpoint
+                l = m + 1
             }
         }
-        return lower
-         */
+
+        let index = l - 1
+        if index < 0 {
+            return (0, CMTime.zero)
+        }
+
+        let frameTime = frameTimes[index]
+        return (index, frameTime)
     }
 
     func frameNumber(for time: Double) -> (Int, CMTime) {
