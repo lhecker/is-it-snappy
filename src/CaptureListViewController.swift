@@ -21,8 +21,6 @@ class MyTableViewCell: UITableViewCell {
 }
 
 class CaptureListViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
-
-    @IBOutlet var stackView: UIStackView!
     @IBOutlet var tableView: UITableView!
     @IBOutlet var captureButton: UIBarButtonItem!
 
@@ -41,11 +39,6 @@ class CaptureListViewController: UIViewController, UITableViewDataSource, UITabl
         tableView.dataSource = self
         tableView.delegate = self
 
-        let infoButton = UIButton(type: .infoLight)
-        infoButton.tintColor = .black
-        infoButton.addTarget(self, action: #selector(handleInfoButtonTap), for: .primaryActionTriggered)
-        navigationItem.leftBarButtonItem = UIBarButtonItem(customView: infoButton)
-        
         _ = videoManager.register {
             self.tableView.reloadData()
         }
@@ -56,12 +49,6 @@ class CaptureListViewController: UIViewController, UITableViewDataSource, UITabl
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         tableView.reloadData()
-    }
-
-    @objc func handleInfoButtonTap() {
-        let storyboard = UIStoryboard(name: "Main", bundle: nil)
-        let vc = storyboard.instantiateViewController(withIdentifier: "AboutViewController")
-        self.navigationController?.pushViewController(vc, animated: true)
     }
 
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
@@ -107,6 +94,13 @@ class CaptureListViewController: UIViewController, UITableViewDataSource, UITabl
             PHAssetChangeRequest.deleteAssets([phModel.asset] as NSArray)
         }
         MarkDatabase.shared.delete(localIdentifier: localIdentifier)
+    }
+
+    @IBAction
+    func didClickInfo(_ sender: AnyObject?) {
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        let vc = storyboard.instantiateViewController(withIdentifier: "AboutViewController")
+        self.navigationController?.pushViewController(vc, animated: true)
     }
 
     @IBAction
