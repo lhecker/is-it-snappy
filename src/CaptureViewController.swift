@@ -173,7 +173,7 @@ class CaptureViewController: UIViewController, AVCaptureFileOutputRecordingDeleg
                 self.currentState = .creatingSession
             }
 
-            self.backgroundRecordingID = UIBackgroundTaskIdentifier(rawValue: convertFromUIBackgroundTaskIdentifier(UIBackgroundTaskIdentifier.invalid))
+            self.backgroundRecordingID = UIBackgroundTaskIdentifier.invalid
 
             guard let videoDevice = CaptureViewController.device(withMediaType: AVMediaType.video.rawValue, preferringPosition: .back) else {
                 DispatchQueue.main.async {
@@ -230,10 +230,10 @@ class CaptureViewController: UIViewController, AVCaptureFileOutputRecordingDeleg
 
                 // Use the status bar orientation as the initial video orientation. Subsequent orientation changes are handled by
                 // -[viewWillTransitionToSize:withTransitionCoordinator:].
-                let statusBarOrientation = UIApplication.shared.statusBarOrientation
+                let interfaceOrientation = self.view.window?.windowScene?.interfaceOrientation ?? .unknown
                 var initialVideoOrientation = AVCaptureVideoOrientation.portrait
-                if  statusBarOrientation != .unknown {
-                    initialVideoOrientation = AVCaptureVideoOrientation(interfaceOrientation: statusBarOrientation)
+                if  interfaceOrientation != .unknown {
+                    initialVideoOrientation = AVCaptureVideoOrientation(interfaceOrientation: interfaceOrientation)
                 }
 
                 let previewLayer = self.previewView.layer
@@ -592,16 +592,14 @@ class CaptureViewController: UIViewController, AVCaptureFileOutputRecordingDeleg
         self.currentState = .switchingCameras
 
         self.sessionQueue.async {
-            var preferredPosition = AVCaptureDevice.Position.unspecified
-
+            let preferredPosition: AVCaptureDevice.Position
             switch self.videoDevice.position {
-            case .unspecified: fallthrough
-            case .front:
+            case .unspecified, .front:
                 preferredPosition = .back
-                break
             case .back:
                 preferredPosition = .front
-                break
+            default:
+                preferredPosition = .unspecified
             }
 
             let newVideoDevice = CaptureViewController.device(withMediaType: AVMediaType.video.rawValue, preferringPosition: preferredPosition)
@@ -735,7 +733,7 @@ class CaptureViewController: UIViewController, AVCaptureFileOutputRecordingDeleg
         // is back to NO — which happens sometime after this method returns.
         // Note: Since we use a unique file path for each recording, a new recording will not overwrite a recording currently being saved.
         let currentBackgroundRecordingID = self.backgroundRecordingID
-        self.backgroundRecordingID = UIBackgroundTaskIdentifier(rawValue: convertFromUIBackgroundTaskIdentifier(UIBackgroundTaskIdentifier.invalid))
+        self.backgroundRecordingID = UIBackgroundTaskIdentifier.invalid
 
         func cleanup() {
             DispatchQueue.main.async {
@@ -862,6 +860,8 @@ class CaptureViewController: UIViewController, AVCaptureFileOutputRecordingDeleg
             return "Auto"
         case .continuousAutoFocus:
             return "ContinuousAuto"
+        @unknown default:
+            return "Unknown"
         }
     }
 
@@ -875,6 +875,8 @@ class CaptureViewController: UIViewController, AVCaptureFileOutputRecordingDeleg
             return "ContinuousAuto"
         case .custom:
             return "Custom"
+        @unknown default:
+            return "Unknown"
         }
     }
 
@@ -886,6 +888,8 @@ class CaptureViewController: UIViewController, AVCaptureFileOutputRecordingDeleg
             return "Auto"
         case .continuousAutoWhiteBalance:
             return "ContinuousAuto"
+        @unknown default:
+            return "Unknown"
         }
     }
 
@@ -906,9 +910,4 @@ class CaptureViewController: UIViewController, AVCaptureFileOutputRecordingDeleg
 
         return g
     }
-}
-
-// Helper function inserted by Swift 4.2 migrator.
-fileprivate func convertFromUIBackgroundTaskIdentifier(_ input: UIBackgroundTaskIdentifier) -> Int {
-	return input.rawValue
 }

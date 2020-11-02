@@ -63,9 +63,9 @@ class CaptureListViewController: UIViewController, UITableViewDataSource, UITabl
         let vc = storyboard.instantiateViewController(withIdentifier: "AboutViewController")
         self.navigationController?.pushViewController(vc, animated: true)
     }
-    
-    func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]? {
-        let action = UITableViewRowAction(style: .destructive, title: "Delete") { [weak self] action, indexPath in
+
+    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        let action = UIContextualAction(style: .destructive, title: "Delete") { [weak self] action, _, _ in
             guard let ss = self else { return }
             let model = ss.groups[indexPath.section].videos[indexPath.row]
             let ac = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
@@ -89,7 +89,7 @@ class CaptureListViewController: UIViewController, UITableViewDataSource, UITabl
             ac.popoverPresentationController?.sourceRect = CGRect(x: sourceView.bounds.width, y: 0, width: 0, height: sourceView.bounds.height)
             ss.present(ac, animated: true, completion: nil)
         }
-        return [action]
+        return UISwipeActionsConfiguration(actions: [action])
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -129,7 +129,7 @@ class CaptureListViewController: UIViewController, UITableViewDataSource, UITabl
                 case .notDetermined, .restricted, .denied:
                     self?.captureButton.isEnabled = true
                     showSettingsAlert(permission: "Photos")
-                case .authorized:
+                case .limited, .authorized:
                     fallthrough
                 @unknown default:
                     AVCaptureDevice.requestAccess(for: AVMediaType.video) { granted in
